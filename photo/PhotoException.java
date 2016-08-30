@@ -1,4 +1,4 @@
-package user;
+package photo;
 
 public class PhotoException extends Exception {
 

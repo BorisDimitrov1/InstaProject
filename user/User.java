@@ -3,6 +3,11 @@ package user;
 import java.security.InvalidParameterException;
 import java.util.*;
 
+import comment.Comment;
+import publication.Publication;
+import publication.PublicationException;
+import publication.ReportPublicationReasons;
+
 public class User implements IUser,Comparable<User> {
 
 	private final Profile profile;
@@ -10,6 +15,7 @@ public class User implements IUser,Comparable<User> {
 	private Set<User> followers;
 	private Set<User> followed;
 	private List<Publication> myPublications;
+	private List<ReportUserReasons> reports = new ArrayList<ReportUserReasons>();
 	
 	private boolean isPrivateProfile = false;
 
@@ -20,21 +26,6 @@ public class User implements IUser,Comparable<User> {
 		this.myPublications = new ArrayList<>();
 	}
 
-	/***
-	 * Prints out hearts/ot likes/, time, user's comment and first comments on
-	 * the screen
-	 */
-	void showPublication() {
-		for (Publication publication : myPublications) {
-			System.out.println(profile.getUserName());
-			System.out.println(publication.getNumberOfLikes());
-			System.out.println(publication.getDate());
-			System.out.println(publication.getUserComment());
-			for (Comment comment : publication.getComments())
-				System.out.println(comment);
-		}
-	}
-
 	@Override
 	public void post(Publication publication) throws UserException {
 		if(publication != null){
@@ -43,21 +34,7 @@ public class User implements IUser,Comparable<User> {
 			throw new UserException("Invalid publication");
 		}
 	}
-	
-	public void reportPublication(Publication pub,ReportPublicationReasons reason){
-		pub.increaseReports();
-	}
 
-	public Publication getPublication() {
-		return myPublications.get(myPublications.size() - 1);
-	}
-	// @Override
-	// public void post(String text, Photo photo) {
-	// Publication post = new Publication(text);
-	// publications.set
-	// post.setCreatorOfThePublication(this);
-	// post.setPhoto(photo);
-	// }
 
 	@Override
 	public void comment(String content, Publication publication) {
@@ -77,6 +54,24 @@ public class User implements IUser,Comparable<User> {
 			}
 		}else{
 			throw new InvalidParameterException();
+		}
+	}
+	
+	@Override
+	public void reportUser(User user, ReportUserReasons reason) throws UserException {
+		if(user != null){
+			user.addReport(reason);
+		}else{
+			throw new UserException("Potrebitelq koito iskate da reportnete e nevaliden");
+		}
+	}
+	
+	@Override
+	public void reportPublication(Publication pub,ReportPublicationReasons reason) throws UserException{
+		if(pub != null){
+			pub.addReport(reason);
+		}else{
+			throw new UserException("Publikaciqta koqto iskate da reportnete e nevalidna");
 		}
 	}
 
@@ -109,10 +104,17 @@ public class User implements IUser,Comparable<User> {
 		if(!isPrivateProfile)
 			isPrivateProfile = true;
 	}
-
+	
 	@Override
-	public void logout() {
-
+	public void follow(User user) throws UserException {
+		if (user != null && user != this){
+			if(!this.followed.contains(user)){
+				this.followed.add(user);
+			}
+			user.addFollower(this);
+		}else{
+			System.err.println("Something went wrong. Please try again later!");
+		}	
 	}
 	
 	public void addFollower(User user) throws UserException{
@@ -126,63 +128,23 @@ public class User implements IUser,Comparable<User> {
 			throw new UserException("Invalid user(null)");
 		}
 	}
-
+	
 	@Override
-	public void follow(User user) throws UserException {
-		if (user != null && user != this){
-			if(!this.followed.contains(user)){
-				this.followed.add(user);
-			}
-			user.addFollower(this);
-		}else{
-			System.err.println("Something went wrong. Please try again later!");
-		}
-			
+	public void logout() {
+		//TODO:
 	}
-
+	
 	// ----------------------------------------------------------------------------
 	public Profile getProfile() {
 		return profile;
 	}
-	
-//	private void setFollowers(List<User> followers) {
-//		if (followers != null)
-//			this.followers = followers;
-//	}
 
 	Set<User> getFollowed() {
 		return followed;
 	}
 
-//	private void setFollowed(List<User> followed) {
-//		if (followed != null)
-//			this.followed = followed;
-//	}
-
-	// Publication getLastPublication(){
-	// if(!this.publications.isEmpty()){
-	// return this.publications.
-	// }
-	// }
-//	@Override
-//	public boolean equals(Object obj) {
-//		if(obj != null && obj instanceof User){
-//			if(this.profile.getUserName().compareTo((((User)obj).getProfile().getUserName() == 0){
-//				
-//			}
-//			return this.profile.getUserName().compareTo(((User)obj).getProfile().getUserName())
-//		}
-//	}
-	
-	
-
 	List<Publication> getMyPublications() {
 		return myPublications;
-	}
-
-	private void setPublications(List<Publication> publications) {
-		if (publications != null)
-			this.myPublications = publications;
 	}
 
 	public Set<User> getFollowers() {
@@ -197,11 +159,6 @@ public class User implements IUser,Comparable<User> {
 		if (homepage != null)
 			this.homepage = homepage;
 	}
-
-	@Override
-	public int compareTo(User o) {
-		return this.getProfile().getUserName().compareTo(o.getProfile().getUserName());
-	}
 	
 	public void viewFollowers(){
 		for(User follower : this.followers){
@@ -213,6 +170,36 @@ public class User implements IUser,Comparable<User> {
 		for(User followed : this.followed){
 			System.out.println(followed.getProfile().getUserName() + '\n');
 		}
+	}
+	
+	public void viewPublications(){
+		for(Publication p : this.myPublications){
+			System.out.println(p);
+		}
+	}
+
+	private void addReport(ReportUserReasons reason) {
+		this.reports.add(reason);
+	}
+	
+	protected void viewReports(){
+		System.out.println("Broi reporti: " + reports.size());
+		for(ReportUserReasons report : reports){
+			System.out.println(report.name());
+		}
+	}
+	
+	@Override
+	public int compareTo(User o) {
+		return this.getProfile().getUserName().compareTo(o.getProfile().getUserName());
+	}
+
+	public void setNameAndSurname(final String name) throws ProfileException {
+		this.profile.setNameAndSurname(name);
+	}
+	
+	public void setPhoneNumber(final String phone) throws ProfileException{
+		this.profile.setPhoneNumber(phone);
 	}
 	
 }

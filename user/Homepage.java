@@ -2,7 +2,7 @@ package user;
 
 import java.util.List;
 
-import user.Publication;
+import publication.Publication;
 import user.User;
 
 public class Homepage {

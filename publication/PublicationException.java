@@ -1,4 +1,4 @@
-package user;
+package publication;
 
 public class PublicationException extends Exception {
 

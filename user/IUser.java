@@ -1,5 +1,8 @@
 package user;
 
+import publication.Publication;
+import publication.ReportPublicationReasons;
+
 public interface IUser {
 
 	void post(Publication publication) throws UserException;
@@ -16,7 +19,11 @@ public interface IUser {
 
 	void setPublicAccountPrivate();
 	
-	void reportPublication(Publication pub,ReportPublicationReasons reason);
+	void reportPublication(Publication pub,ReportPublicationReasons reason) throws UserException;
+	
+	void reportUser(User user, ReportUserReasons reason) throws UserException;
 
 	void logout();
+	
+	
 }

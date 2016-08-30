@@ -1,6 +1,8 @@
-package user;
+package comment;
 
 import java.time.LocalDateTime;
+
+import user.User;
 
 public class Comment {
 	private User byWhom;
@@ -9,7 +11,7 @@ public class Comment {
 
 	public Comment(String content) {
 		setContent(content);
-		creationOfTheComment = LocalDateTime.now();
+		this.creationOfTheComment = LocalDateTime.now();
 	}
 
 	public void setByWhom(User user) {
@@ -26,7 +28,7 @@ public class Comment {
 		return byWhom;
 	}
 
-	public void setContent(String content) {
+	private void setContent(String content) {
 		if (content != null && content.trim().length() > 0)
 			this.content = content;
 	}

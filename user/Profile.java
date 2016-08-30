@@ -1,11 +1,18 @@
 package user;
 
-import java.util.Scanner;
-
 import org.apache.commons.validator.routines.UrlValidator;
 
 
 public class Profile {
+	private static final String CHANGE_PASSWORD_INVALID_PASSWORD = "Invalid password!";
+	private static final int COUNT_DIGITS_PHONE_NUMBER = 10;
+	private static final int COUNT_DIGITS_PHONE_NUMBER_STARTING_WITH_359 = 13;
+	private static final String SET_EMAIL_INAVLID_EMAIL = "Email not valid";
+	private static final String SET_NAME_SURNAME_INVALID_INPUT = "Invalid Name and Surname";
+	private static final String SET_USERNAME_INVALID_USERNAME = "Invalid username!";
+	private static final String SET_PHONE_INVALID_PHONE_NUMBER = "Invalid Phone number";
+	private static final String SET_WEBSITE_INVALID_WEBSITE = "Invalid website";
+	private static final String SET_BIOGRAPHY_INVALID_INPUT = "Please fill this form!";
 	private String userName = "";
 	private String nameAndSurname = "";
 	private String password;
@@ -44,7 +51,7 @@ public class Profile {
 	// ---------------------------------------------------------------------------------------
 	
 
-	String getUserName() {
+	public String getUserName() {
 		return userName;
 	}
 
@@ -76,42 +83,6 @@ public class Profile {
 		return nameAndSurname;
 	}
 
-	
-	private void setPassword(String password) /*Da vidim dali shte go polzvame*/ {
-		// TODO add secure password
-		if (password == null || password.length() < 7)
-			do {
-				System.err.println(
-						"Please enter a password containing one uppercase capital letter, one downercase letter, a symbol and at least 6 letters long!");
-				password = new Scanner(System.in).nextLine();
-			} while (password == null || password.length() < 7);
-		this.password = password;
-	}
-
-	/***
-	 * 
-	 * @param website
-	 * @return true if website looks like www.CONTENT.com or www.CONTENT.net,
-	 *         where content can include uppercase, downercase letters, numbers
-	 *         and fullstop(.)
-	 */
-	private static boolean isValidWebsite(String website) {
-		for (int i = 0; i < website.length(); ++i)
-			if (!(website.startsWith("www.") && containsValidContent(website) == true
-					&& ((website.endsWith(".com") || (website.endsWith(".net"))))))
-				return false;
-		return true;
-	}
-
-	private static boolean containsValidContent(String website) {
-		for (int i = 3; i < website.length() - 4; ++i)
-			if (!((website.charAt(i) > '0' && website.charAt(i) > '9')
-					|| ((website.charAt(i) > 'A') && website.charAt(i) > 'Z')
-					|| (website.charAt(i) > 'a' && website.charAt(i) > 'z') || website.charAt(i) == '.'))
-				return false;
-		return true;
-	}
-
 	void setGender(Gender gender) {
 		this.gender = gender;
 	}
@@ -125,13 +96,16 @@ public class Profile {
 	}
 	
 	void setBiography(final String bio) throws Exception {
-		if (bio != null && bio.trim().length() > 0)
+		//Ok
+		if (bio != null && bio.trim().length() > 0){
 			this.biography = bio;
-		else
-			throw new ProfileException("Please fill this form!");
+		}else{
+			throw new ProfileException(SET_BIOGRAPHY_INVALID_INPUT);
+		}
 	}
 	
 	public void setWebsite(String website) throws ProfileException {
+		//Ok
 		String finalWebsite = "";
 		if(website.startsWith("www.")){
 			String temp = website.substring(4, website.length());
@@ -140,21 +114,22 @@ public class Profile {
 		if (isWebsiteValid(finalWebsite)){
 			this.website = finalWebsite;
 		}else{
-			throw new ProfileException("Invalid website");
+			throw new ProfileException(SET_WEBSITE_INVALID_WEBSITE);
 		}	
 	}
 	
 	public static boolean isWebsiteValid(final String website)/*da pitame niki dali tova e losha ideq.*/{
+		//Ok
 		UrlValidator urlValidator = new UrlValidator();
 		return urlValidator.isValid(website);
 	}
 	
-	private void setPhoneNumber(final String phoneNumber) throws ProfileException {
+	protected void setPhoneNumber(final String phoneNumber) throws ProfileException {
 		//Ok
 		if (isValidPhoneNumber(phoneNumber)){
 			this.phoneNumber = phoneNumber;
 		}else{
-			throw new ProfileException("Invalid Phone number");
+			throw new ProfileException(SET_PHONE_INVALID_PHONE_NUMBER);
 		}	
 	}
 	
@@ -163,15 +138,15 @@ public class Profile {
 		if (userName != null && userName.trim().length() > 0)
 			this.userName = userName.trim();
 		else
-			throw new ProfileException("Invalid username!");
+			throw new ProfileException(SET_USERNAME_INVALID_USERNAME);
 	}
 	
-	private void setNameAndSurname(final String nameAndSurname) throws ProfileException {
+	protected void setNameAndSurname(final String nameAndSurname) throws ProfileException {
 		//Ok
 		if (nameAndSurname != null){
 			this.nameAndSurname = nameAndSurname.trim();
 		}else{
-			throw new ProfileException("Invalid Name and Surname");
+			throw new ProfileException(SET_NAME_SURNAME_INVALID_INPUT);
 		}
 	}
 
@@ -180,10 +155,9 @@ public class Profile {
 		if(isValidEmailAddress(email)){
 			this.email = email;
 		}else{
-			throw new ProfileException("Email not valid");
+			throw new ProfileException(SET_EMAIL_INAVLID_EMAIL);
 		}
 	}
-	
 	
 	private static boolean isValidEmailAddress(final String email) {
 		//OK
@@ -205,24 +179,22 @@ public class Profile {
 		if(phoneNumber == null )
 			return false;
 		
-		if (((phoneNumber.trim().startsWith("+3598") && phoneNumber.length() == 13)
-				|| (phoneNumber.trim().startsWith("08")) && phoneNumber.length() == 10)){
+		if (((phoneNumber.trim().startsWith("+3598") && phoneNumber.length() == COUNT_DIGITS_PHONE_NUMBER_STARTING_WITH_359)
+				|| (phoneNumber.trim().startsWith("08")) && phoneNumber.length() == COUNT_DIGITS_PHONE_NUMBER)){
 			return true;
 		}
 		return false;
 	}
 	
-	
 	private void changePassword(final String newPassword) throws ProfileException {
 		//Ok
-		if (isSecure(newPassword))
+		if (isPasswordSecure(newPassword))
 			this.password = newPassword;
 		else
-			throw new ProfileException("Invalid password!");
+			throw new ProfileException(CHANGE_PASSWORD_INVALID_PASSWORD);
 	}
 	
-	
-	private static boolean isSecure(final String password) {
+	private static boolean isPasswordSecure(final String password) {
 		//Ok
 		boolean hasLowerCase = false;
 		boolean hasUpperCase = false;
@@ -243,36 +215,5 @@ public class Profile {
 		}
 		return false;
 	}
-	
-//	@Override
-//	public int hashCode() {
-//		final int prime = 31;
-//		int result = 1;
-//		result = prime * result + ((email == null) ? 0 : email.hashCode());
-//		result = prime * result + ((userName == null) ? 0 : userName.hashCode());
-//		return result;
-//	}
-//
-//	@Override
-//	public boolean equals(Object obj) {
-//		if (this == obj)
-//			return true;
-//		if (obj == null)
-//			return false;
-//		if (getClass() != obj.getClass())
-//			return false;
-//		Profile other = (Profile) obj;
-//		if (email == null) {
-//			if (other.email != null)
-//				return false;
-//		} else if (!email.equals(other.email))
-//			return false;
-//		if (userName == null) {
-//			if (other.userName != null)
-//				return false;
-//		} else if (!userName.equals(other.userName))
-//			return false;
-//		return true;
-//	}
 
 }
