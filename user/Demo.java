@@ -12,21 +12,33 @@ public class Demo {
 
 	public static void main(String[] args) {
 		
-		try{
-			User user = new User("aba", "pasSword1", "aba@abv.bg");
-			user.setNameAndSurname("Boris Dimitrov");
-			user.setPhoneNumber("0884541478");
+			 
+			
+			Photo photo1 = null;
+			Publication gotinSumPub = null;
+			User user = null;
+			User second = null;
+			try{
+				user = new User("aba", "pasSword1", "aba@abv.bg");
+				second = new User("dada", "paRola2", "dasd@abv.bg");
+				photo1 = new Photo(new File("C:\\Users\\Boris\\Desktop\\4177422b.jpg"));
+				gotinSumPub = new Publication("Gotin sum", photo1,user);
+			}catch(PhotoException | PublicationException | ProfileException e){
+				System.err.println(e.getMessage());
+			}
+			
+			user.changeNameAndSurname("Boris Dimitrov");
+			user.changePhoneNumber("0884541478");
 			System.out.println(user);
-			Photo photo1 = new Photo(new File("C:\\Users\\Boris\\Desktop\\4177422b.jpg"));
+			
 			System.out.println(photo1);
-			Publication gotinSumPub = new Publication("Gotin sum", photo1,user);
+			
 			System.out.println(gotinSumPub);
 
 			user.post(gotinSumPub);
-			user.viewPublications();
-			user.getProfile().setWebsite("www.abv.bg");
+			user.viewMyPublications();
+			user.changeWebSite("www.abv.bg");
 
-			User second = new User("dada", "paRola2", "dasd@abv.bg");
 			System.out.println(second);
 			second.likeAPublication(gotinSumPub);
 			
@@ -48,10 +60,7 @@ public class Demo {
 			second.reportUser(user,ReportUserReasons.HACKED_ACCOUNT);
 			user.viewReports();
 			
-		}catch(UserException | PublicationException | ProfileException | PhotoException ex){
-			System.out.println("CATCH" + ex.getMessage());
-		}
-		
-		
+			user.viewUnreadNotifications();
+			second.viewNotifications();
 	}
 }

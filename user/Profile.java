@@ -25,14 +25,11 @@ public class Profile {
 	
 	//TODO: da vidim dali shte pravim proverka za tova dali veche ima
 	//potrebitel s takuv Username ili email
-	public Profile(final String userName,final String password,final String email) {
-		try {
+	public Profile(final String userName,final String password,final String email) throws ProfileException {
 			this.setUserName(userName);
 			this.changePassword(password);
 			this.setEmail(email);
-		} catch (ProfileException e) {
-			System.err.println(e.getMessage());
-		}	
+		
 	}
 	// ---------------------------------------------------------------------------------------
 
@@ -106,16 +103,18 @@ public class Profile {
 	
 	public void setWebsite(String website) throws ProfileException {
 		//Ok
-		String finalWebsite = "";
-		if(website.startsWith("www.")){
-			String temp = website.substring(4, website.length());
-			finalWebsite = "http://" + temp;
+		if(website != null){
+			String finalWebsite = "";
+			if(website.startsWith("www.")){
+				String temp = website.substring(4, website.length());
+				finalWebsite = "http://" + temp;
+			}
+			if (isWebsiteValid(finalWebsite)){
+				this.website = finalWebsite;
+			}else{
+				throw new ProfileException(SET_WEBSITE_INVALID_WEBSITE);
+			}	
 		}
-		if (isWebsiteValid(finalWebsite)){
-			this.website = finalWebsite;
-		}else{
-			throw new ProfileException(SET_WEBSITE_INVALID_WEBSITE);
-		}	
 	}
 	
 	public static boolean isWebsiteValid(final String website)/*da pitame niki dali tova e losha ideq.*/{

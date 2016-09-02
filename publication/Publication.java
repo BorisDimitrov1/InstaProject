@@ -14,7 +14,7 @@ public class Publication {
 	private User creatorOfThePublication;
 	private List<Comment> comments;
 	private Set<User> usersWhoLikesThatPublication;
-	private final LocalDateTime date;
+	private final LocalDateTime dateAndTimeOfCreation;
 	private String textToThePost;
 	private List<ReportPublicationReasons> reports = new ArrayList<ReportPublicationReasons>(); 
 	private Photo photo;
@@ -26,7 +26,7 @@ public class Publication {
 		setPhoto(photo);
 		comments = new ArrayList<>();
 		usersWhoLikesThatPublication = new TreeSet<User>();
-		date = LocalDateTime.now();
+		dateAndTimeOfCreation = LocalDateTime.now();
 	}
 
 	private void setTextToThePost(final String textToThePost) throws PublicationException{
@@ -78,7 +78,7 @@ public class Publication {
 	
 	@Override
 	public String toString() {
-		return "Creator: " + creatorOfThePublication.getProfile().getUserName() +  "\nText: " + textToThePost + "\nDate:" + date;
+		return "Creator: " + creatorOfThePublication.getProfile().getUserName() +  "\nText: " + textToThePost + "\nDate:" + dateAndTimeOfCreation;
 	}
 
 	List<Comment> getComments() {
@@ -88,9 +88,13 @@ public class Publication {
 	String getUserComment() {
 		return textToThePost;
 	}
+	
+	public User getCreatorOfThePublication(){
+		return this.creatorOfThePublication;
+	}
 
 	LocalDateTime getDate() {
-		return date;
+		return dateAndTimeOfCreation;
 	}
 
 	void setPhoto(Photo photo) {

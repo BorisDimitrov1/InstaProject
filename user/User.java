@@ -16,10 +16,11 @@ public class User implements IUser,Comparable<User> {
 	private Set<User> followed;
 	private List<Publication> myPublications;
 	private List<ReportUserReasons> reports = new ArrayList<ReportUserReasons>();
+	private List<Notification> notifications = new ArrayList<Notification>();
 	
 	private boolean isPrivateProfile = false;
 
-	public User(String userName, String password, String email) {
+	public User(String userName, String password, String email) throws ProfileException {
 		this.profile = new Profile(userName, password, email);
 		this.followers = new TreeSet<User>();
 		this.followed = new TreeSet<User>();
@@ -27,11 +28,11 @@ public class User implements IUser,Comparable<User> {
 	}
 
 	@Override
-	public void post(Publication publication) throws UserException {
-		if(publication != null){
-			myPublications.add(publication);
-		}else{
-			throw new UserException("Invalid publication");
+	public void post(Publication publication) {
+		try{
+			addToMyPublication(publication);
+		}catch(UserException e){
+			System.err.println(e.getMessage());
 		}
 	}
 
@@ -41,6 +42,24 @@ public class User implements IUser,Comparable<User> {
 		Comment comment = new Comment(content);
 		comment.setByWhom(this);
 		publication.addComment(comment);
+		publication.getCreatorOfThePublication().sendNotification("komentira vasha publikaciq");
+	}
+	
+	@Override
+	public void follow(User user)  {
+		if (user != null && user != this){
+			if(!this.followed.contains(user)){
+				this.followed.add(user);
+				user.sendNotification("vi posledva");
+			}
+			try{
+				user.addFollower(this);
+			}catch(UserException e){
+				System.out.println(e.getMessage());
+			}
+		}else{
+			System.err.println("Something went wrong. Please try again later!");
+		}	
 	}
 
 	@Override
@@ -48,6 +67,7 @@ public class User implements IUser,Comparable<User> {
 		if (user != null && user != this){
 			if(this.followed.contains(user)){
 				followed.remove(user);
+				user.sendNotification("Veche ne vi sledva");
 			}
 			if(user.followers.contains(this)){
 				user.followers.remove(this);
@@ -58,29 +78,12 @@ public class User implements IUser,Comparable<User> {
 	}
 	
 	@Override
-	public void reportUser(User user, ReportUserReasons reason) throws UserException {
-		if(user != null){
-			user.addReport(reason);
-		}else{
-			throw new UserException("Potrebitelq koito iskate da reportnete e nevaliden");
-		}
-	}
-	
-	@Override
-	public void reportPublication(Publication pub,ReportPublicationReasons reason) throws UserException{
-		if(pub != null){
-			pub.addReport(reason);
-		}else{
-			throw new UserException("Publikaciqta koqto iskate da reportnete e nevalidna");
-		}
-	}
-
-	@Override
-	public void likeAPublication(Publication publication) throws UserException {
+	public void likeAPublication(Publication publication) {
 		if (publication != null) {
 			if(!publication.getUsersWhoLikesThatPublication().contains(this)){
 				try {
 					publication.addUserToUsersWhoLikesThatPublication(this);
+					publication.getCreatorOfThePublication().sendNotification("Haresa vasha publikaciq");
 				} catch (PublicationException e) {
 					System.out.println(e.getMessage());
 					e.printStackTrace();
@@ -89,7 +92,25 @@ public class User implements IUser,Comparable<User> {
 				System.err.println("Veche ste haresali tazi publikaciq");
 			}
 		}else{
-			throw new UserException("Invalid user");
+			System.err.println("Invalid user");
+		}
+	}
+	
+	@Override
+	public void reportUser(User user, ReportUserReasons reason) {
+		if(user != null){
+			user.addReport(reason);
+		}else{
+			System.err.println("Potrebitelq koito iskate da reportnete e nevaliden");
+		}
+	}
+	
+	@Override
+	public void reportPublication(Publication pub,ReportPublicationReasons reason){
+		if(pub != null){
+			pub.addReport(reason);
+		}else{
+			System.err.println("Publikaciqta koqto iskate da reportnete e nevalidna");
 		}
 	}
 
@@ -105,19 +126,23 @@ public class User implements IUser,Comparable<User> {
 			isPrivateProfile = true;
 	}
 	
-	@Override
-	public void follow(User user) throws UserException {
-		if (user != null && user != this){
-			if(!this.followed.contains(user)){
-				this.followed.add(user);
-			}
-			user.addFollower(this);
-		}else{
-			System.err.println("Something went wrong. Please try again later!");
-		}	
+	
+	
+	private void sendNotification(String notificationText) {
+		if(notificationText != null){
+			this.notifications.add(new Notification(this.getUserName() + " " + notificationText));
+		}
 	}
 	
-	public void addFollower(User user) throws UserException{
+	private void addToMyPublication(Publication publication) throws UserException{
+		if(publication != null){
+			myPublications.add(publication);
+		}else{
+			throw new UserException("Invalid publication");
+		}
+	}
+
+	private void addFollower(User user) throws UserException{
 		if(user != null){
 			if(!this.followers.contains(user)){
 				this.followers.add(user);
@@ -139,40 +164,56 @@ public class User implements IUser,Comparable<User> {
 		return profile;
 	}
 
-	Set<User> getFollowed() {
-		return followed;
+//	private Set<User> getFollowed() {
+//		return followed;
+//	}
+//
+//	private List<Publication> getMyPublications() {
+//		return myPublications;
+//	}
+//
+//	private Set<User> getFollowers() {
+//		return followers;
+//	}
+//
+//	private Homepage getHomepage() {
+//		return homepage;
+//	}
+//
+//	private void setHomepage(Homepage homepage) {
+//		if (homepage != null)
+//			this.homepage = homepage;
+//	}
+	
+	public void viewNotifications(){
+		for(Notification notification : notifications){
+			System.out.println(notification);
+			notification.setSeen(true);
+		}
 	}
-
-	List<Publication> getMyPublications() {
-		return myPublications;
-	}
-
-	public Set<User> getFollowers() {
-		return followers;
-	}
-
-	public Homepage getHomepage() {
-		return homepage;
-	}
-
-	public void setHomepage(Homepage homepage) {
-		if (homepage != null)
-			this.homepage = homepage;
+	
+	public void viewUnreadNotifications(){
+		for(Notification notification : notifications){
+			if(!notification.isSeen()){
+				System.out.println(notification);
+				notification.setSeen(true);
+			}
+		}
 	}
 	
 	public void viewFollowers(){
 		for(User follower : this.followers){
-			System.out.println(follower.getProfile().getUserName() + '\n');
+			System.out.println(follower.getUserName() + '\n');
 		}
 	}
 	
 	public void viewFollowed(){
 		for(User followed : this.followed){
-			System.out.println(followed.getProfile().getUserName() + '\n');
+			System.out.println(followed.getUserName() + '\n');
 		}
 	}
 	
-	public void viewPublications(){
+	public void viewMyPublications(){
 		for(Publication p : this.myPublications){
 			System.out.println(p);
 		}
@@ -194,12 +235,33 @@ public class User implements IUser,Comparable<User> {
 		return this.getProfile().getUserName().compareTo(o.getProfile().getUserName());
 	}
 
-	public void setNameAndSurname(final String name) throws ProfileException {
-		this.profile.setNameAndSurname(name);
+	public void changeNameAndSurname(final String name) {
+		try{
+			this.profile.setNameAndSurname(name);
+		}catch(ProfileException e){
+			System.err.println(e.getMessage());
+		}
+		
 	}
 	
-	public void setPhoneNumber(final String phone) throws ProfileException{
-		this.profile.setPhoneNumber(phone);
+	public void changePhoneNumber(final String phone){
+		try{
+			this.profile.setPhoneNumber(phone);
+		}catch(ProfileException e){
+			System.err.println(e.getMessage());
+		}
+	}
+
+	public void changeWebSite(final String string) {
+		try{
+			this.profile.setWebsite("www.abv.bg");
+		}catch(ProfileException e){
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	private String getUserName(){
+		return this.profile.getUserName();
 	}
 	
 }
